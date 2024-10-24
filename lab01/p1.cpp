@@ -15,28 +15,23 @@ void getImageInfo(Mat image) {
 }
 
 
-double getFilterPixel(int currentI, int currentJ, int n, int m, Mat background, vector<vector<double>>&kernel) {
+double getFilterPixel(int currentI, int currentJ, int currentK, int n, int m, Mat background, vector<vector<double>>&kernel) {
   double calRes = 0;
   for(int i = 0; i < n; i++, currentI++) {
     for(int j = 0; j < m; j++, currentJ++) {
       Vec3b color = background.at<Vec3b>(currentI, currentJ);
-      double averageColor = 0;
-      for(int k = 0; k < 3; k++) {
-        averageColor +=  ( kernel[i][j] * color[k] );
-      }
-      averageColor /= 3.0;
-      calRes += averageColor;
+      calRes += ( color[currentK] * kernel[i][j] );
     }
   }
   
-  return calRes / 3.0;
+  return calRes;
 }
 
-void conv(Mat image, int n, int m, vector<vector<double>> &kernel, double bias, int padding) {
+Mat conv(Mat image, int n, int m, vector<vector<double>> &kernel, double bias, int padding) {
 
   if ( !(n & 1) || !( m & 1 ) ) {
     cerr << "Invaild value of n or m\n";
-    return;
+    exit(0);
   }
 
   int height = image.rows;
@@ -77,17 +72,15 @@ void conv(Mat image, int n, int m, vector<vector<double>> &kernel, double bias, 
 
   for(int i = 0; i <= background.rows - n; i++) {
     for(int j = 0; j <= background.cols - m; j++) {
-      double filterColor = getFilterPixel(i, j, n, m, background, kernel) + bias;
+      double filterColor = 0;
       Vec3b &color = resultImage.at<Vec3b>(i, j);
       for(int k = 0; k < 3; k++) {
-        color[k] = filterColor;
+        color[k] = getFilterPixel(i, j, k, n, m, background, kernel) + bias;
       }
     }
   }
 
-  getImageInfo(resultImage);
-  imshow("result image", resultImage);
-  return;
+  return resultImage;
 }
 
 
@@ -130,7 +123,10 @@ int main() {
   }
   
   imshow("origin image", image);
-  conv(image, n, m, kernel, 0, 1);
+  Mat resultImage = conv(image, n, m, kernel, 0, 1);
+  
+  getImageInfo(resultImage);
+  imshow("result image", resultImage);
   
   waitKey(0); // 等待按鍵
   return 0;
