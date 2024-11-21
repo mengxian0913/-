@@ -108,7 +108,7 @@ struct Image {
 
 
   void saveAllImages() {
-    string imagePrefix = "./latexSource/" + imageName;
+    string imagePrefix = "./res/" + imageName;
     imwrite(imagePrefix + "_origin.png", originImage);
     imwrite(imagePrefix + "_process.png", imageAfterProcess);
 
